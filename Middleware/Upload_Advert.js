@@ -2,15 +2,14 @@ import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../Configurator/cloudinary.js";
 
-const storage = new CloudinaryStorage({
+const advertStorage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "user_photos",
+    folder: "advert_photos",
     allowed_formats: ["jpg", "jpeg", "png"],
-    transformation: [{ width: 300, height: 300, crop: "limit" }],
   },
 });
 
-const upload = multer({ storage });
+const uploadAdvert = multer({ storage: advertStorage });
 
-export default upload;
+export default uploadAdvert;
