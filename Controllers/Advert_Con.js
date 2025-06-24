@@ -4,17 +4,16 @@ import { User } from "../Models/User_Mod.js";
 // === CREATE ADVERT (Vendor only) ===
 export const createAdvert = async (req, res) => {
   const {
-  title = "",
-  description = "",
-  Make = "",
-  category = "",
+  title,
+  description,
+  Make,
+  category,
   price,
-  condition = "",
-  location = "",
-  Model = "",
-  partNumber = "",
-} = req.body || {}; 
-
+  condition,
+  location,
+  Model,
+  partNumber,
+} = req.body || {};
 
   try {
     if (req.user.role !== "vendor") {
