@@ -28,8 +28,14 @@ export const initiateVendorPayment = async (req, res) => {
       reference: response.data.data.reference,
     });
   } catch (err) {
-    res.status(500).json({ message: "Paystack error", error: err.message });
-  }
+  console.error("Paystack error response:", err.response?.data || err.message); // add this for debugging
+  res.status(500).json({
+    message: "Paystack error",
+    error: err.response?.data || err.message,
+  });
+}
+
+  
 };
 
 export const verifyPayment = async (req, res) => {
