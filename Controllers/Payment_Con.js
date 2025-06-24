@@ -1,8 +1,15 @@
+// controllers/paymentController.js
 import axios from "axios";
 import { User } from "../Models/User_Mod.js";
 
+// === INITIATE PAYMENT ===
 export const initiateVendorPayment = async (req, res) => {
   const { email, fullname } = req.body;
+
+  // Sanity check
+  if (!email || !fullname) {
+    return res.status(400).json({ message: "Email and fullname are required" });
+  }
 
   try {
     const response = await axios.post(
@@ -28,18 +35,21 @@ export const initiateVendorPayment = async (req, res) => {
       reference: response.data.data.reference,
     });
   } catch (err) {
-  console.error("Paystack error response:", err.response?.data || err.message); 
-  res.status(500).json({
-    message: "Paystack error",
-    error: err.response?.data || err.message,
-  });
-}
-
-  
+    console.error("Paystack INIT error:", err.response?.data || err.message);
+    res.status(500).json({
+      message: "Paystack error",
+      error: err.response?.data || err.message,
+    });
+  }
 };
 
+// === VERIFY PAYMENT ===
 export const verifyPayment = async (req, res) => {
   const { reference } = req.params;
+
+  if (!reference) {
+    return res.status(400).json({ message: "Payment reference is required" });
+  }
 
   try {
     const response = await axios.get(
@@ -53,7 +63,8 @@ export const verifyPayment = async (req, res) => {
 
     const data = response.data.data;
 
-    console.log("Payment Verification Response:", data);  
+    console.log("✔ Payment Verified:", data);
+
     const email = data.customer.email?.toLowerCase();
 
     if (data.status === "success") {
@@ -67,7 +78,7 @@ export const verifyPayment = async (req, res) => {
       );
 
       if (!user) {
-        console.warn("No matching user found for email:", email); // <--- Add this
+        console.warn("⚠ No user found for email:", email);
         return res.status(404).json({ message: "User not found to update" });
       }
 
@@ -79,11 +90,10 @@ export const verifyPayment = async (req, res) => {
       return res.status(400).json({ message: "Payment verification failed" });
     }
   } catch (err) {
-    console.error("Paystack verification error:", err.response?.data || err.message);
+    console.error("Paystack VERIFY error:", err.response?.data || err.message);
     res.status(500).json({
       message: "Error verifying payment",
       error: err.response?.data || err.message,
     });
   }
 };
-
