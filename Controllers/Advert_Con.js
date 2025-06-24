@@ -4,16 +4,16 @@ import { User } from "../Models/User_Mod.js";
 // === CREATE ADVERT (Vendor only) ===
 export const createAdvert = async (req, res) => {
   const {
-    title,
-    description,
-    make,
-    category,
-    price,
-    condition,
-    location,
-    model,
-    partNumber,
-  } = req.body;
+  title = "",
+  Make = "",
+  category = "",
+  price,
+  condition = "",
+  location = "",
+  Model = "",
+  partNumber = "",
+} = req.body || {}; // Fallback to empty object
+
 
   try {
     if (req.user.role !== "vendor") {
@@ -29,12 +29,12 @@ export const createAdvert = async (req, res) => {
     const advert = await Advert.create({
       title: title?.trim(),
       description: description?.trim(),
-      make: make?.trim(),
+      Make: Make?.trim(),
       category: category?.trim(),
       price: parseFloat(price),
       condition: condition?.trim(),
       location: location?.trim(),
-      model: model?.split(",").map(v => v.trim()),
+      Model: Model?.split(",").map(v => v.trim()),
       partNumber: partNumber?.trim(),
       images: imageUrls,
       vendor: req.user._id,
@@ -42,7 +42,7 @@ export const createAdvert = async (req, res) => {
 
     res.status(201).json({ message: "Advert created", advert });
   } catch (err) {
-  console.error("Error:", err); 
+  console.error("Advert creation error:", err); 
 
   res.status(500).json({
   message: "Something went wrong",
