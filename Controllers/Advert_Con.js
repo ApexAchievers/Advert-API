@@ -35,7 +35,7 @@ export const createAdvert = async (req, res) => {
       price: parseFloat(price),
       condition: condition?.trim(),
       location: location?.trim(),
-      Model: Model?.split(",").map(v => v.trim()),
+      Model: Model?.trim(),
       partNumber: partNumber?.trim(),
       images: imageUrls,
       vendor: req.user._id,

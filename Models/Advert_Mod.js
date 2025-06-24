@@ -75,7 +75,7 @@ const advertSchema = new mongoose.Schema(
 );
 
 // Add indexes for faster querying and filtering
-advertSchema.index({ brand: 1 });
+advertSchema.index({ Model: 1 });
 advertSchema.index({ category: 1 });
 advertSchema.index({ item: 1 });
 advertSchema.index({ condition: 1 });
