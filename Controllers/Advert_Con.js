@@ -4,16 +4,17 @@ import { User } from "../Models/User_Mod.js";
 // === CREATE ADVERT (Vendor only) ===
 export const createAdvert = async (req, res) => {
   const {
-  title,
-  description,
-  Make,
-  category,
-  price,
-  condition,
-  location,
-  Model,
-  partNumber,
-} = req.body || {};
+    title = "",
+    description = "",
+    Make = "",
+    category = "",
+    item = "",
+    price,
+    condition = "",
+    location = "",
+    Model = "",
+    partNumber = "",
+  } = req.body || {};
 
   try {
     if (req.user.role !== "vendor") {
@@ -24,6 +25,15 @@ export const createAdvert = async (req, res) => {
       return res.status(403).json({ message: "Please complete payment before posting adverts." });
     }
 
+    // Validate category and item
+    if (!categoryItems[category]) {
+      return res.status(400).json({ message: "Invalid category selected." });
+    }
+
+    if (!categoryItems[category].includes(item)) {
+      return res.status(400).json({ message: `Invalid item for the selected category: ${category}` });
+    }
+
     const imageUrls = req.files?.map(file => file.path) || [];
 
     const advert = await Advert.create({
@@ -31,6 +41,7 @@ export const createAdvert = async (req, res) => {
       description: description?.trim(),
       Make: Make?.trim(),
       category: category?.trim(),
+      item: item?.trim(),
       price: parseFloat(price),
       condition: condition?.trim(),
       location: location?.trim(),
@@ -42,14 +53,14 @@ export const createAdvert = async (req, res) => {
 
     res.status(201).json({ message: "Advert created", advert });
   } catch (err) {
-  console.error("Advert creation error:", err); 
-
-  res.status(500).json({
-  message: "Something went wrong",
-  error: err.message || err.toString(),
-});
-}
+    console.error("Advert creation error:", err);
+    res.status(500).json({
+      message: "Something went wrong",
+      error: err.message || err.toString(),
+    });
+  }
 };
+
 
 
 // === GET ALL ADVERTS (with filters + pagination) ===

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import { categoryItems } from "../Utils/Category_Item.js";
 const advertSchema = new mongoose.Schema(
   {
     title: {
@@ -17,23 +17,15 @@ const advertSchema = new mongoose.Schema(
 },
     category: {
       type: String,
-      enum: [
-        "Engine & Mechanical Components",
-        "Transmission & Drivetrain",
-        "Suspension & Steering",
-        "Braking System",
-        "Electrical & Battery System",
-        "Lights & Indicators",
-        "Climate & Comfort",
-        "Body & Exterior",
-        "Interior Components",
-        "Cycling essentials (bicycle components)",
-        "Services",
-        "Fluid and lubricants",
-        "Bike parts and accessories"
-      ],
+      required: true,
+      enum: Object.keys(categoryItems), // All main categories
+    },
+
+    item: {
+      type: String,
       required: true,
     },
+
     
     price: {
       type: Number,
