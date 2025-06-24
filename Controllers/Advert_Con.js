@@ -42,7 +42,8 @@ export const createAdvert = async (req, res) => {
 
     res.status(201).json({ message: "Advert created", advert });
   } catch (err) {
-    res.status(500).json({ message: "Advert creation failed", error: err.message });
+    console.error("Error creating advert:", err);  // <== See error in console
+    res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 };
 
