@@ -45,9 +45,9 @@ export const createAdvert = async (req, res) => {
   console.error("Error:", err); 
 
   res.status(500).json({
-    message: "Internal Server Error",
-    error: err.message || "Unknown error", 
-  });
+  message: "Something went wrong",
+  error: err.message || err.toString(),
+});
 }
 };
 
