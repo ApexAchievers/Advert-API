@@ -78,7 +78,7 @@ const advertSchema = new mongoose.Schema(
       type: String,
     },
      Model: {
-      type: [String],
+      type: [],
     },
     
   },

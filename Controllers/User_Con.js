@@ -5,7 +5,6 @@ import crypto from "crypto";
 import { User } from "../Models/User_Mod.js";
 import { sendOtpEmail } from "../Utils/Mailer.js";
 
-
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "5m" });
@@ -17,6 +16,7 @@ export const signup = async (req, res) => {
     fullname,
     email,
     password,
+    confirmPassword,
     role,
     companyName,
     businessAddress,
@@ -24,17 +24,19 @@ export const signup = async (req, res) => {
 
   const photo = req.file ? req.file.path : "";
 
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
   try {
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ message: "Email already in use" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    // Send OTP to user's email
     await sendOtpEmail(email, otp);
 
     const user = await User.create({
@@ -177,7 +179,6 @@ export const updateProfile = async (req, res) => {
       businessAddress,
     } = req.body;
 
-    // Update fields
     if (fullname) user.fullname = fullname;
     if (email) user.email = email;
 
@@ -186,7 +187,6 @@ export const updateProfile = async (req, res) => {
       if (businessAddress) user.businessAddress = businessAddress;
     }
 
-    // Update photo if uploaded
     if (req.file) {
       user.photo = req.file.path;
     }
@@ -209,14 +209,14 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to update profile", error: err.message });
   }
 };
-//Add advert to favourites
+
+// === FAVOURITES ===
 export const addToFavorites = async (req, res) => {
   const userId = req.user._id;
   const advertId = req.params.advertId;
 
   try {
     const user = await User.findById(userId);
-
     if (user.favorites.includes(advertId)) {
       return res.status(400).json({ message: "Already in favorites" });
     }
@@ -229,14 +229,13 @@ export const addToFavorites = async (req, res) => {
     res.status(500).json({ message: "Failed to add to favorites", error: err.message });
   }
 };
-//Remove from favorites
+
 export const removeFromFavorites = async (req, res) => {
   const userId = req.user._id;
   const advertId = req.params.advertId;
 
   try {
     const user = await User.findById(userId);
-
     user.favorites = user.favorites.filter(
       (favId) => favId.toString() !== advertId
     );
@@ -247,19 +246,17 @@ export const removeFromFavorites = async (req, res) => {
     res.status(500).json({ message: "Failed to remove from favorites", error: err.message });
   }
 };
-//Get all favourites
+
 export const getFavorites = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate("favorites");
-
     res.json({ favorites: user.favorites });
   } catch (err) {
     res.status(500).json({ message: "Failed to get favorites", error: err.message });
   }
 };
 
-
-//Forgot Password
+// === FORGOT PASSWORD ===
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -271,11 +268,10 @@ export const forgotPassword = async (req, res) => {
     const resetTokenHashed = crypto.createHash("sha256").update(resetToken).digest("hex");
 
     user.resetPasswordToken = resetTokenHashed;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
     const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
     await sendOtpEmail(email, "Reset your password using this link: " + resetURL);
 
     res.status(200).json({ message: "Reset link sent to email." });
@@ -284,10 +280,14 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-//Reset password
+// === RESET PASSWORD ===
 export const resetPassword = async (req, res) => {
-  const { password } = req.body;
+  const { password, confirmPassword } = req.body;
   const resetToken = req.params.token;
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
 
   const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
@@ -309,5 +309,4 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Password reset failed", error: err.message });
   }
 };
-
 
