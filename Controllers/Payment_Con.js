@@ -28,7 +28,7 @@ export const initiateVendorPayment = async (req, res) => {
       reference: response.data.data.reference,
     });
   } catch (err) {
-  console.error("Paystack error response:", err.response?.data || err.message); // add this for debugging
+  console.error("Paystack error response:", err.response?.data || err.message); 
   res.status(500).json({
     message: "Paystack error",
     error: err.response?.data || err.message,
@@ -53,10 +53,10 @@ export const verifyPayment = async (req, res) => {
 
     const data = response.data.data;
 
-    if (data.status === "success") {
-      // Update user by email or metadata (e.g. fullname)
-      const email = data.customer.email;
+    console.log("Payment Verification Response:", data);  
+    const email = data.customer.email?.toLowerCase();
 
+    if (data.status === "success") {
       const user = await User.findOneAndUpdate(
         { email },
         {
@@ -67,6 +67,7 @@ export const verifyPayment = async (req, res) => {
       );
 
       if (!user) {
+        console.warn("No matching user found for email:", email); // <--- Add this
         return res.status(404).json({ message: "User not found to update" });
       }
 
@@ -78,9 +79,11 @@ export const verifyPayment = async (req, res) => {
       return res.status(400).json({ message: "Payment verification failed" });
     }
   } catch (err) {
+    console.error("Paystack verification error:", err.response?.data || err.message);
     res.status(500).json({
       message: "Error verifying payment",
       error: err.response?.data || err.message,
     });
   }
 };
+
