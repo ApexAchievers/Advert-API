@@ -161,3 +161,49 @@ export const resendOtp = async (req, res) => {
     res.status(500).json({ message: "Failed to resend OTP", error: err.message });
   }
 };
+
+// === UPDATE PROFILE ===
+export const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const {
+      fullname,
+      email,
+      companyName,
+      businessAddress,
+    } = req.body;
+
+    // Update fields
+    if (fullname) user.fullname = fullname;
+    if (email) user.email = email;
+
+    if (user.role === "vendor") {
+      if (companyName) user.companyName = companyName;
+      if (businessAddress) user.businessAddress = businessAddress;
+    }
+
+    // Update photo if uploaded
+    if (req.file) {
+      user.photo = req.file.path;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+        photo: user.photo,
+        companyName: user.companyName,
+        businessAddress: user.businessAddress,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update profile", error: err.message });
+  }
+};
