@@ -1,5 +1,6 @@
 import { Advert } from "../Models/Advert_Mod.js";
 import { User } from "../Models/User_Mod.js";
+import { categoryItems } from "../Utils/Category_Item.js";
 
 // === CREATE ADVERT (Vendor only) ===
 export const createAdvert = async (req, res) => {
