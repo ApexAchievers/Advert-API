@@ -5,6 +5,7 @@ import { User } from "../Models/User_Mod.js";
 export const createAdvert = async (req, res) => {
   const {
   title = "",
+  description = "",
   Make = "",
   category = "",
   price,
@@ -12,7 +13,7 @@ export const createAdvert = async (req, res) => {
   location = "",
   Model = "",
   partNumber = "",
-} = req.body || {}; // Fallback to empty object
+} = req.body || {}; 
 
 
   try {
