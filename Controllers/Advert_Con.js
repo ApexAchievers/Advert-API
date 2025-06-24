@@ -6,12 +6,12 @@ export const createAdvert = async (req, res) => {
   const {
     title,
     description,
-    brand,
+    Make,
     category,
     price,
     condition,
     location,
-    vehicleCompatibility,
+    Model,
     partNumber,
   } = req.body;
 
@@ -25,12 +25,12 @@ export const createAdvert = async (req, res) => {
     const advert = await Advert.create({
       title,
       description,
-      brand,
+      Make,
       category,
       price,
       condition,
       location,
-      vehicleCompatibility: vehicleCompatibility?.split(",").map(v => v.trim()),
+      Model: Model?.split(",").map(v => v.trim()),
       partNumber,
       images: imageUrls,
       vendor: req.user._id,
@@ -46,7 +46,7 @@ export const createAdvert = async (req, res) => {
 export const getAllAdverts = async (req, res) => {
   const {
     title,
-    brand,
+    Make,
     category,
     condition,
     minPrice,
@@ -58,7 +58,7 @@ export const getAllAdverts = async (req, res) => {
   const filter = {};
 
   if (title) filter.title = { $regex: title, $options: "i" };
-  if (brand) filter.brand = brand;
+  if (Make) filter.Make = Make;
   if (category) filter.category = category;
   if (condition) filter.condition = condition;
   if (minPrice || maxPrice) {

@@ -26,8 +26,15 @@ const userSchema = new mongoose.Schema(
     },
     companyName:
          { type: String },
-    businessAddress: 
-    { type: String },
+    businessAddress: {
+       type: String
+       },
+    favorites: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Advert",
+  },
+],
     paymentStatus: {
     type: String,
     enum: ["pending", "paid"],
@@ -49,6 +56,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    resetPasswordToken: {
+  type: String,
+},
+resetPasswordExpires: {
+  type: Date,
+},
+
   },
   { timestamps: true }
 );

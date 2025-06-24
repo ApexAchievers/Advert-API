@@ -10,7 +10,7 @@ const advertSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    brand: {
+    Make: {
       type: String,
       enum: [
         "Toyota",
@@ -31,16 +31,24 @@ const advertSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "Engine",
-        "Transmission",
-        "Brakes",
-        "Electrical",
-        "Suspension",
-        "Body",
-        "Interior",
-        "Tires",
-        "Other"
+        "Engine & Mechanical Components",
+        "Transmission & Drivetrain",
+        "Suspension & Steering",
+        "Braking System",
+        "Electrical & Battery System",
+        "Lights & Indicators",
+        "Climate & Comfort",
+        "Body & Exterior",
+        "Interior Components",
+        "Cycling essentials (bicycle components)",
+        "Services",
+        "Fluid and lubricants",
+        "Bike parts and accessories"
       ],
+      required: true,
+    },
+    item: {
+      type: String,
       required: true,
     },
     price: {
@@ -69,9 +77,10 @@ const advertSchema = new mongoose.Schema(
     partNumber: {
       type: String,
     },
-    vehicleCompatibility: {
+     Model: {
       type: [String],
     },
+    
   },
   { timestamps: true }
 );
@@ -79,6 +88,7 @@ const advertSchema = new mongoose.Schema(
 // Add indexes for faster querying and filtering
 advertSchema.index({ brand: 1 });
 advertSchema.index({ category: 1 });
+advertSchema.index({ item: 1 });
 advertSchema.index({ condition: 1 });
 
 export const Advert = mongoose.model("Advert", advertSchema);

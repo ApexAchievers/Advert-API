@@ -5,6 +5,7 @@ import cors from "cors";
 import userRoutes from "./Routes/Authenticate_Routes.js";
 import advertRoutes from "./Routes/Advert_Route.js";
 import paymentRoute from "./Routes/Payent_Route.js";
+import categoryRoute from "./Routes/Category_Route.js";
 
 dotenv.config();
 
@@ -17,6 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', userRoutes)
 app.use('/api/adverts', advertRoutes)
 app.use('/api/payment', paymentRoute)
+app.use('/api/categories', categoryRoute)
+app.use('/api/users/favourites', userRoutes)
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

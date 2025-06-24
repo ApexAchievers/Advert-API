@@ -1,8 +1,10 @@
 // controllers/authController.js
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { User } from "../Models/User_Mod.js";
 import { sendOtpEmail } from "../Utils/Mailer.js";
+
 
 // Generate JWT
 const generateToken = (id) => {
@@ -207,3 +209,105 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to update profile", error: err.message });
   }
 };
+//Add advert to favourites
+export const addToFavorites = async (req, res) => {
+  const userId = req.user._id;
+  const advertId = req.params.advertId;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (user.favorites.includes(advertId)) {
+      return res.status(400).json({ message: "Already in favorites" });
+    }
+
+    user.favorites.push(advertId);
+    await user.save();
+
+    res.json({ message: "Added to favorites", favorites: user.favorites });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add to favorites", error: err.message });
+  }
+};
+//Remove from favorites
+export const removeFromFavorites = async (req, res) => {
+  const userId = req.user._id;
+  const advertId = req.params.advertId;
+
+  try {
+    const user = await User.findById(userId);
+
+    user.favorites = user.favorites.filter(
+      (favId) => favId.toString() !== advertId
+    );
+    await user.save();
+
+    res.json({ message: "Removed from favorites", favorites: user.favorites });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to remove from favorites", error: err.message });
+  }
+};
+//Get all favourites
+export const getFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("favorites");
+
+    res.json({ favorites: user.favorites });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get favorites", error: err.message });
+  }
+};
+
+
+//Forgot Password
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHashed = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    user.resetPasswordToken = resetTokenHashed;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+    await user.save();
+
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    await sendOtpEmail(email, "Reset your password using this link: " + resetURL);
+
+    res.status(200).json({ message: "Reset link sent to email." });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to send reset link", error: err.message });
+  }
+};
+
+//Reset password
+export const resetPassword = async (req, res) => {
+  const { password } = req.body;
+  const resetToken = req.params.token;
+
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ message: "Password reset failed", error: err.message });
+  }
+};
+
+
