@@ -34,10 +34,7 @@ const advertSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    item: {
-      type: String,
-      required: true,
-    },
+    
     price: {
       type: Number,
       required: true,
