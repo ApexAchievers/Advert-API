@@ -1,3 +1,4 @@
+// controllers/authController.js
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User } from "../Models/User_Mod.js";
@@ -10,7 +11,15 @@ const generateToken = (id) => {
 
 // === SIGNUP ===
 export const signup = async (req, res) => {
-  const { username, email, password, role } = req.body;
+  const {
+    fullname,
+    email,
+    password,
+    role,
+    companyName,
+    businessAddress,
+  } = req.body;
+
   const photo = req.file ? req.file.path : "";
 
   try {
@@ -21,14 +30,13 @@ export const signup = async (req, res) => {
 
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // expires in 5 mins
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
     // Send OTP to user's email
     await sendOtpEmail(email, otp);
 
-    // Create user with OTP and not verified
     const user = await User.create({
-      username,
+      fullname,
       email,
       password: hashedPassword,
       role,
@@ -36,16 +44,23 @@ export const signup = async (req, res) => {
       otp,
       otpExpires,
       verified: false,
+      ...(role === "vendor" && {
+        companyName,
+        businessAddress,
+        paymentStatus: "pending",
+      }),
     });
 
     res.status(201).json({
       message: "Signup successful. OTP sent to email.",
       user: {
         _id: user._id,
-        username: user.username,
+        fullname: user.fullname,
         email: user.email,
         role: user.role,
         photo: user.photo,
+        companyName: user.companyName,
+        businessAddress: user.businessAddress,
       },
     });
   } catch (err) {
@@ -70,7 +85,7 @@ export const login = async (req, res) => {
 
     res.json({
       _id: user._id,
-      username: user.username,
+      fullname: user.fullname,
       email: user.email,
       role: user.role,
       photo: user.photo,
@@ -93,34 +108,26 @@ export const verifyOtp = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-
     if (!user) return res.status(404).json({ message: "User not found" });
-
     if (user.verified) return res.status(400).json({ message: "User already verified" });
-
     if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
-
     if (user.otpExpires < Date.now()) {
       return res.status(400).json({ message: "OTP has expired" });
     }
 
-    // Mark user as verified
     user.verified = true;
     user.otp = null;
     user.otpExpires = null;
     await user.save();
 
-    // Generate JWT token now
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "5m",
-    });
+    const token = generateToken(user._id);
 
     res.status(200).json({
       message: "OTP verified successfully",
       token,
       user: {
         _id: user._id,
-        username: user.username,
+        fullname: user.fullname,
         email: user.email,
         role: user.role,
         photo: user.photo,
@@ -137,12 +144,11 @@ export const resendOtp = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.verified) return res.status(400).json({ message: "User is already verified" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
     await sendOtpEmail(email, otp);
 

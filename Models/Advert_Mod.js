@@ -76,7 +76,7 @@ const advertSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add indexes for faster querying/filtering
+// Add indexes for faster querying and filtering
 advertSchema.index({ brand: 1 });
 advertSchema.index({ category: 1 });
 advertSchema.index({ condition: 1 });

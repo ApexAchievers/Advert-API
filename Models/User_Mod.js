@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    username: {
+    fullname: {
       type: String,
       required: true,
     },
@@ -24,9 +24,24 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    companyName:
+         { type: String },
+    businessAddress: 
+    { type: String },
+    paymentStatus: {
+    type: String,
+    enum: ["pending", "paid"],
+    default: "pending",
+    },
+
+    paymentReference: {
+      type: String,
+      default: null,
+    },
     otp: {
       type: String,
     },
+    
     otpExpires: {
       type: Date,
     },
