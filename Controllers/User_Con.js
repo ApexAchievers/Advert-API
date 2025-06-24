@@ -30,15 +30,20 @@ export const signup = async (req, res) => {
 
   try {
     const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: "Email already in use" });
+    if (exists) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate OTP and expiration
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
+    // Send OTP via email
     await sendOtpEmail(email, otp);
 
+    // Create user
     const user = await User.create({
       fullname,
       email,
@@ -52,6 +57,7 @@ export const signup = async (req, res) => {
         companyName,
         businessAddress,
         paymentStatus: "pending",
+        paymentReference: null,
       }),
     });
 
@@ -63,14 +69,18 @@ export const signup = async (req, res) => {
         email: user.email,
         role: user.role,
         photo: user.photo,
-        companyName: user.companyName,
-        businessAddress: user.businessAddress,
+        ...(role === "vendor" && {
+          companyName: user.companyName,
+          businessAddress: user.businessAddress,
+          paymentStatus: user.paymentStatus,
+        }),
       },
     });
   } catch (err) {
     res.status(500).json({ message: "Signup failed", error: err.message });
   }
 };
+
 
 // === LOGIN ===
 export const login = async (req, res) => {

@@ -6,32 +6,36 @@ export const createAdvert = async (req, res) => {
   const {
     title,
     description,
-    Make,
+    make,
     category,
     price,
     condition,
     location,
-    Model,
+    model,
     partNumber,
   } = req.body;
 
   try {
     if (req.user.role !== "vendor") {
-      return res.status(403).json({ message: "Only vendors can create adverts" });
+      return res.status(403).json({ message: "Only vendors can create adverts." });
     }
 
-    const imageUrls = req.files.map(file => file.path);
+    if (req.user.paymentStatus !== "paid") {
+      return res.status(403).json({ message: "Please complete payment before posting adverts." });
+    }
+
+    const imageUrls = req.files?.map(file => file.path) || [];
 
     const advert = await Advert.create({
-      title,
-      description,
-      Make,
-      category,
-      price,
-      condition,
-      location,
-      Model: Model?.split(",").map(v => v.trim()),
-      partNumber,
+      title: title?.trim(),
+      description: description?.trim(),
+      make: make?.trim(),
+      category: category?.trim(),
+      price: parseFloat(price),
+      condition: condition?.trim(),
+      location: location?.trim(),
+      model: model?.split(",").map(v => v.trim()),
+      partNumber: partNumber?.trim(),
       images: imageUrls,
       vendor: req.user._id,
     });
@@ -41,6 +45,7 @@ export const createAdvert = async (req, res) => {
     res.status(500).json({ message: "Advert creation failed", error: err.message });
   }
 };
+
 
 // === GET ALL ADVERTS (with filters + pagination) ===
 export const getAllAdverts = async (req, res) => {
