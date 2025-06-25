@@ -64,8 +64,16 @@ resetPasswordExpires: {
   type: Date,
 },
 
+favorites: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Advert",
+  },
+],
+
   },
   { timestamps: true }
 );
+
 
 export const User = mongoose.model("User", userSchema);
