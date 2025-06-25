@@ -81,7 +81,7 @@ export const getAllAdverts = async (req, res) => {
 
   if (title) filter.title = { $regex: title, $options: "i" };
   if (Make) filter.Make = Make;
-  if (category) filter.category = category;
+  if (category) filter.category = { $regex: category, $options: "i" };
   if (condition) filter.condition = condition;
   if (minPrice || maxPrice) {
     filter.price = {};
