@@ -19,7 +19,7 @@ app.use('/api/auth', userRoutes)
 app.use('/api/adverts', advertRoutes)
 app.use('/api/payment', paymentRoute)
 app.use('/api/categories', categoryRoute)
-app.use('/api/users/favourites', userRoutes)
+app.use('/api/users', userRoutes)
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
