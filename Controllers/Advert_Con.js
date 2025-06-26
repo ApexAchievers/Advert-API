@@ -22,7 +22,7 @@ export const createAdvert = async (req, res) => {
       return res.status(403).json({ message: "Only vendors can create adverts." });
     }
 
-    if (req.user.paymentStatus !== "paid") {
+    if (req.user.paymentStatus !== "pending") {
       return res.status(403).json({ message: "Please complete payment before posting adverts." });
     }
 

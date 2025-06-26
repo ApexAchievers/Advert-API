@@ -35,29 +35,3 @@ export const initiateVendorPayment = async (req, res) => {
     res.status(500).json({ message: "Paystack error", error: err.message });
   }
 };
-export const markUserAsPaid = async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" });
-  }
-
-  try {
-    const user = await User.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      {
-        paymentStatus: "paid",
-        paymentReference: "manual", // Or something default
-      },
-      { new: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json({ message: "User marked as paid", user });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to mark user as paid", error: err.message });
-  }
-};
