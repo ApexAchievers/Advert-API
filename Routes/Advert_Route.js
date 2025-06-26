@@ -15,6 +15,7 @@ advertRoutes.get("/my-adverts", protect, getVendorAdverts);
 // Public Routes
 advertRoutes.get("/", getAllAdverts); // View all adverts
 advertRoutes.get("/:id", getAdvertById); // View single advert
+advertRoutes.put('/:id', updateAdvert);// Update advert by id
 
 
 

@@ -1,12 +1,12 @@
 // controllers/paymentController.js
 import axios from "axios";
+import crypto from "crypto";
 import { User } from "../Models/User_Mod.js";
 
 // === INITIATE PAYMENT ===
 export const initiateVendorPayment = async (req, res) => {
   const { email, fullname } = req.body;
 
-  // Sanity check
   if (!email || !fullname) {
     return res.status(400).json({ message: "Email and fullname are required" });
   }
@@ -16,7 +16,7 @@ export const initiateVendorPayment = async (req, res) => {
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: 5000 * 100, // GHS 50.00 in pesewas
+        amount: 5000 * 100,
         metadata: {
           fullname,
         },
@@ -43,31 +43,26 @@ export const initiateVendorPayment = async (req, res) => {
   }
 };
 
-// === VERIFY PAYMENT ===
-export const verifyPayment = async (req, res) => {
-  const { reference } = req.params;
+// === HANDLE PAYSTACK WEBHOOK ===
+export const handlePaystackWebhook = async (req, res) => {
+  const secret = process.env.PAYSTACK_SECRET_KEY;
 
-  if (!reference) {
-    return res.status(400).json({ message: "Payment reference is required" });
+  const hash = crypto
+    .createHmac("sha512", secret)
+    .update(req.body)
+    .digest("hex");
+
+  if (hash !== req.headers["x-paystack-signature"]) {
+    return res.status(400).json({ message: "Invalid webhook signature" });
   }
 
-  try {
-    const response = await axios.get(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        },
-      }
-    );
+  const event = req.body;
 
-    const data = response.data.data;
+  if (event.event === "charge.success") {
+    const email = event.data.customer.email?.toLowerCase();
+    const reference = event.data.reference;
 
-    console.log("✔ Payment Verified:", data);
-
-    const email = data.customer.email?.toLowerCase();
-
-    if (data.status === "success") {
+    try {
       const user = await User.findOneAndUpdate(
         { email },
         {
@@ -77,23 +72,15 @@ export const verifyPayment = async (req, res) => {
         { new: true }
       );
 
-      if (!user) {
-        console.warn("⚠ No user found for email:", email);
-        return res.status(404).json({ message: "User not found to update" });
+      if (user) {
+        console.log("✔ User payment updated automatically for:", email);
+      } else {
+        console.warn("⚠ User not found for webhook update:", email);
       }
-
-      return res.status(200).json({
-        message: "Payment verified and user updated",
-        user,
-      });
-    } else {
-      return res.status(400).json({ message: "Payment verification failed" });
+    } catch (err) {
+      console.error("Webhook user update error:", err.message);
     }
-  } catch (err) {
-    console.error("Paystack VERIFY error:", err.response?.data || err.message);
-    res.status(500).json({
-      message: "Error verifying payment",
-      error: err.response?.data || err.message,
-    });
   }
+
+  res.sendStatus(200);
 };
